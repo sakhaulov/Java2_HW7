@@ -1,4 +1,4 @@
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -12,8 +12,9 @@ import java.util.Arrays;
 
 public class WeatherApp {
 
-    private static final String CITY_CODE = "294021"; //Moscow
-    private static final String API_KEY = "3wHMyNLiSNlyT3riDm0mDPVQiBBRwgeo";
+    private final String CITY_CODE = "294021"; //Moscow
+    private final String API_KEY = "2Ofh6GBhUOGIuqxWGupaLtLjEdPzBbHe";
+    private final String LANG = "ru-RU";
 
     private OkHttpClient okHttpClient;
     private ObjectMapper objectMapper;
@@ -37,7 +38,7 @@ public class WeatherApp {
                     .addPathSegments("5day")
                     .addPathSegments(CITY_CODE)
                     .addQueryParameter("apikey", API_KEY)
-                    .addQueryParameter("language", "ru-RU")
+                    .addQueryParameter("language", LANG)
                     .addQueryParameter("details", "false")
                     .addQueryParameter("metric", "true")
                     .build().url();
@@ -58,6 +59,8 @@ public class WeatherApp {
 
     public String getCityName() throws IOException {
 
+        //http://dataservice.accuweather.com/locations/v1/294021?apikey=2Ofh6GBhUOGIuqxWGupaLtLjEdPzBbHe
+
         try {
             URL url = new HttpUrl.Builder()
                     .scheme("http")
@@ -66,8 +69,9 @@ public class WeatherApp {
                     .addPathSegments("v1")
                     .addPathSegments(CITY_CODE)
                     .addQueryParameter("apikey", API_KEY)
-                    .addQueryParameter("language", "ru-RU")
-                    .build().url();
+                    .addQueryParameter("language", LANG)
+                    .build()
+                    .url();
 
             Request request = new Request.Builder()
                     .url(url)
@@ -75,11 +79,45 @@ public class WeatherApp {
 
             Response response = getOkHttpClient().newCall(request).execute();
 
-            return objectMapper.readTree(response.body().string()).get("LocalizedName").toString();
+            System.out.println(response.body().string());
+            System.out.println(getObjectMapper().readTree(response.body().string()).asText());
+
+            return getObjectMapper().readTree(response.body().string()).asText();
+
+
         } catch (IOException e) {
             return "Неизвестный город";
         }
     }
+
+//    public void getCityId() throws IOException {
+//
+//            OkHttpClient okHttpClient = new OkHttpClient();
+//
+//            URL url = new HttpUrl.Builder()
+//                    .scheme("http")
+//                    .host("dataservice.accuweather.com")
+//                    .addPathSegments("locations")
+//                    .addPathSegments("v1")
+//                    .addPathSegments("cities")
+//                    .addPathSegments("search")
+//                    .addQueryParameter("apikey", API_KEY)
+//                    .addQueryParameter("q", "%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0")
+//                    .addQueryParameter("language", LANG)
+//                    .build().url();
+//
+//            Request request = new Request.Builder()
+//                    .url(url)
+//                    .build();
+//
+//            Response response = getOkHttpClient().newCall(request).execute();
+//
+//            System.out.println(response.body().string());
+//
+//            //return objectMapper.readTree(response.body().string()).get(0).at("/Key").asText();
+//
+//
+//    }
 
 
     public String getWeatherTest() throws IOException {
@@ -112,37 +150,31 @@ public class WeatherApp {
                     .at("/DailyForecasts")
                     .get(i)
                     .at("/Date")
-                    .toString();
+                    .asText();
 
             String tempMin = getObjectMapper().readTree(weather)
                     .at("/DailyForecasts")
                     .get(i)
-                    .at("/Temperature")
-                    .at("/Minimum")
-                    .at("/Value")
-                    .toString();
+                    .at("/Temperature/Minimum/Value")
+                    .asText();
 
             String tempMax = getObjectMapper().readTree(weather)
                     .at("/DailyForecasts")
                     .get(i)
-                    .at("/Temperature")
-                    .at("/Maximum")
-                    .at("/Value")
-                    .toString();
+                    .at("/Temperature/Maximum/Value")
+                    .asText();
 
             String weatherStateDay = getObjectMapper().readTree(weather)
                     .at("/DailyForecasts")
                     .get(i)
-                    .at("/Day")
-                    .at("/IconPhrase")
-                    .toString();
+                    .at("/Day/IconPhrase")
+                    .asText();
 
             String weatherStateNight = getObjectMapper().readTree(weather)
                     .at("/DailyForecasts")
                     .get(i)
-                    .at("/Night")
-                    .at("/IconPhrase")
-                    .toString();
+                    .at("/Night/IconPhrase")
+                    .asText();
 
             sb.append("В городе ")
                     .append(city)
