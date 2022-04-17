@@ -79,8 +79,10 @@ public class WeatherApp {
 
             Response response = getOkHttpClient().newCall(request).execute();
 
+            String tempJson = response.body().string();
+
             return getObjectMapper()
-                    .readTree(response.body().string())
+                    .readTree(tempJson)
                     .get("LocalizedName")
                     .asText();
 
@@ -109,8 +111,10 @@ public class WeatherApp {
 
             Response response = getOkHttpClient().newCall(request).execute();
 
+            String tempJson = response.body().string();
+
             return getObjectMapper()
-                    .readTree(response.body().string())
+                    .readTree(tempJson)
                     .get(0)
                     .get("Key")
                     .asText();
